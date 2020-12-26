@@ -60,7 +60,7 @@ class GIF extends EventEmitter
         frame.context = image
     else if image.childNodes?
       if options.copy
-        frame.data = @getImageData image
+        frame.data = @getImageData image, options.biasTop, options.biasLeft
       else
         frame.image = image
     else
@@ -163,7 +163,7 @@ class GIF extends EventEmitter
   getContextData: (ctx) ->
     return ctx.getImageData(0, 0, @options.width, @options.height).data
 
-  getImageData: (image) ->
+  getImageData: (image, biasTop, biasLeft) ->
     if not @_canvas?
       @_canvas = document.createElement 'canvas'
       @_canvas.width = @options.width
@@ -172,7 +172,7 @@ class GIF extends EventEmitter
     ctx = @_canvas.getContext '2d'
     ctx.fillStyle = @options.background
     ctx.fillRect 0, 0, @options.width, @options.height
-    ctx.drawImage image, 0, 0
+    ctx.drawImage image, biasTop or 0, biasLeft or 0
 
     return @getContextData ctx
 

@@ -1,8 +1,11 @@
 {
-  "name": "gif.js",
-  "version": "0.2.1",
-  "description": "JavaScript GIF encoding library",
+  "name": "@pwp-app/gif.js",
+  "version": "0.3.0",
+  "description": "A modified version of gif.js",
   "author": "Johan Nordberg <code@johan-nordberg.com>",
+  "maintainers": [
+    "backrunner <dev@backrunner.top>"
+  ],
   "main": "index.js",
   "repository": "https://github.com/jnordberg/gif.js.git",
   "devDependencies": {
@@ -12,6 +15,7 @@
     "uglify-js": "^2.7.5"
   },
   "scripts": {
+    "build": "npm run prepublish",
     "prepublish": "./bin/build"
   },
   "browser": "./dist/gif.js",
