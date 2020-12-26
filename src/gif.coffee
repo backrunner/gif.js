@@ -160,16 +160,16 @@ class GIF extends EventEmitter
     @activeWorkers.push worker
     worker.postMessage task#, [task.data.buffer]
 
-  getContextData: (ctx, options) ->
+  getContextData: (ctx, frameOptions) ->
     imgData = ctx.getImageData(0, 0, @options.width, @options.height).data
-    if options.transparent
-      threshold = 128;
-      for i in [0...imageData.data.length] by 4
-        imageData.data[i + 3] = 255 * (imageData.data[i + 3] > threshold);
+    if frameOptions?.transparent
+      threshold = 128
+      for i in [0...imgData.length] by 4
+        imgData[i + 3] = 255 * (imgData[i + 3] > threshold)
 
     return imgData
 
-  getImageData: (image, options) ->
+  getImageData: (image, frameOptions) ->
     if not @_canvas?
       @_canvas = document.createElement 'canvas'
       @_canvas.width = @options.width
@@ -179,9 +179,9 @@ class GIF extends EventEmitter
     ctx.clearRect 0, 0, @options.width, @options.height
     ctx.fillStyle = @options.background
     ctx.fillRect 0, 0, @options.width, @options.height
-    ctx.drawImage image, biasLeft or 0, biasTop or 0
+    ctx.drawImage image, frameOptions?.biasLeft or 0, frameOptions?.biasTop or 0
 
-    return @getContextData ctx, options
+    return @getContextData ctx, frameOptions
 
   getTask: (frame) ->
     index = @frames.indexOf frame
