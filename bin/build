@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-URL="https://github.com/jnordberg/gif.js"
+URL="https://github.com/backrunner/gif.js"
 TMP="./dist/tmp"
 
 if [ -d ./node_modules ]; then

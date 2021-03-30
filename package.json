@@ -1,7 +1,7 @@
 {
   "name": "@pwp-app/gif.js",
-  "version": "0.3.0",
-  "description": "A modified version of gif.js",
+  "version": "0.4.0",
+  "description": "A modified version of gif.js can convert apng to gif",
   "author": "Johan Nordberg <code@johan-nordberg.com>",
   "maintainers": [
     "backrunner <dev@backrunner.top>"

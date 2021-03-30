@@ -44,6 +44,7 @@ class GIF extends EventEmitter
   addFrame: (image, options={}) ->
     frame = {}
     frame.transparent = @options.transparent
+    frame.options = options
     for key of frameDefaults
       frame[key] = options[key] or frameDefaults[key]
 
@@ -59,10 +60,18 @@ class GIF extends EventEmitter
       else
         frame.context = image
     else if image.childNodes?
-      if options.copy
-        frame.data = @getImageData image, options
+      if options.apng
+        prevFrame = null
+        if @frames.length
+          prevFrame = @frames[@frames.length - 1]
+        frame.data = @getImageData image, options, prevFrame
+        if options.disposeOp is 2
+          frame.cache = @getImageCache options
       else
-        frame.image = image
+        if options.copy
+          frame.data = @getImageData image
+        else
+          frame.image = image
     else
       throw new Error 'Invalid image'
 
@@ -160,8 +169,11 @@ class GIF extends EventEmitter
     @activeWorkers.push worker
     worker.postMessage task#, [task.data.buffer]
 
-  getContextData: (ctx, frameOptions) ->
-    imgData = ctx.getImageData(0, 0, @options.width, @options.height).data
+  getContextData: (ctx, frameOptions, useFrameSize) ->
+    if useFrameSize
+      imgData = ctx.getImageData(frame.left, frame.top, frame.width, frame.height)
+    else
+      imgData = ctx.getImageData(0, 0, @options.width, @options.height).data
     if frameOptions?.transparent
       threshold = 128
       for i in [0...imgData.length] by 4
@@ -169,17 +181,42 @@ class GIF extends EventEmitter
 
     return imgData
 
-  getImageData: (image, frameOptions) ->
+  getImageCache: (options) ->
+    ctx = @_canvas.getContext '2d'
+    return @getContextData ctx, options, true
+
+  getImageData: (image, frameOptions, prevFrame) ->
     if not @_canvas?
       @_canvas = document.createElement 'canvas'
       @_canvas.width = @options.width
       @_canvas.height = @options.height
 
     ctx = @_canvas.getContext '2d'
-    ctx.clearRect 0, 0, @options.width, @options.height
-    ctx.fillStyle = @options.background
-    ctx.fillRect 0, 0, @options.width, @options.height
-    ctx.drawImage image, frameOptions?.biasLeft or 0, frameOptions?.biasTop or 0
+
+    if @frames.length is 0
+      ctx.clearRect 0, 0, @options.width, @options.height
+      ctx.fillStyle = @options.background
+      ctx.fillRect frameOptions.left, frameOptions.top, frameOptions.width, frameOptions.height
+
+    if prevFrame?.options.disposeOp is 1
+      ctx.clearRect prevFrame.options.left, prevFrame.options.top,
+        prevFrame.options.width, prevFrame.options.height
+      ctx.fillStyle = @options.background
+      ctx.fillRect prevFrame.options.left, prevFrame.options.top,
+        prevFrame.options.width, prevFrame.options.height
+
+    if prevFrame?.options.disposeOp is 2
+      ctx.putImageData prevFrame.cache, prevFrame.options.left, prevFrame.options.top
+
+    if frameOptions?.blendOp is 0
+      ctx.clearRect frameOptions.left, frameOptions.top, frameOptions.width, frameOptions.height
+      ctx.fillStyle = @options.background
+      ctx.fillRect frameOptions.left, frameOptions.top, frameOptions.width, frameOptions.height
+    else
+      ctx.clearRect 0, 0, @options.width, @options.height
+      ctx.fillStyle = @options.background
+      ctx.fillRect 0, 0, @options.width, @options.height
+    ctx.drawImage image, frameOptions?.left or 0, frameOptions?.top or 0
 
     return @getContextData ctx, frameOptions
 
